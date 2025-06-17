@@ -36,3 +36,6 @@ coverage/
 .localized
 .Trashes
 Thumbs.db
+
+#Firebase
+firebase-credentials.json
