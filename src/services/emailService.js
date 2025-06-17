@@ -1,32 +1,21 @@
-import admin from 'firebase-admin';
-import sgMail from '@sendgrid/mail';
-import dotenv from 'dotenv';
+// services/emailService.js
+const nodemailer = require('nodemailer');
 
-dotenv.config();
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+const transporter = nodemailer.createTransport({
+  host:     process.env.SMTP_HOST,
+  port:    +process.env.SMTP_PORT,
+  secure:  process.env.SMTP_SECURE === 'true',
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
+});
 
-export async function sendVerificationEmail(email) {
-    const actionCodeSettings = {
-        url: `${process.env.APP_URL}/api/users/verify-email`,
-        handleCodeInApp: false,
-    };
-
-    // 1) Generate the OOB link via Admin SDK
-    const link = await admin
-        .auth()
-        .generateEmailVerificationLink(email, actionCodeSettings);
-
-    // 2) Send with SendGrid
-    const msg = {
-        to: email,
-        from: process.env.EMAIL_FROM,
-        subject: 'Please verify your email',
-        html: `
-      <p>Hi there,</p>
-      <p>Please <a href="${link}">click here</a> to verify your email address. This link will expire in a few hours.</p>
-      <p>If you didn’t sign up, just ignore this email.</p>
-    `,
-    };
-
-    await sgMail.send(msg);
+async function sendMail({ to, subject, html, text }) {
+  return transporter.sendMail({
+    from: `"${process.env.EMAIL_FROM_NAME}" <${process.env.EMAIL_FROM_ADDRESS}>`,
+    to, subject, html, text
+  });
 }
+
+module.exports = { sendMail };

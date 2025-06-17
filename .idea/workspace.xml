@@ -5,29 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a304ec47-3329-4b83-8387-d0f36a8c528c" name="Changes" comment="First Commit Dev">
-      <change afterPath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_17_06_2025_15_12_[Changes]/shelved.patch" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_17_06_2025_15_12__Changes_.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/config/config.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/jsconfig.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/migrations/20250617045154-create-users-table.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/models/index.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/config/db.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/config/firebase.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/controllers/userController.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/middleware/auth.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/models/index.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/models/user.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/routes/userRoutes.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/services/emailService.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/utils/logger.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/utils/token.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.env" beforeDir="false" afterPath="$PROJECT_DIR$/.env" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/index.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/controllers/userController.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/controllers/userController.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/routes/userRoutes.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/routes/userRoutes.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -53,12 +33,12 @@
     &quot;assignee&quot;: &quot;GGngodong&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings">{
-  &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;https://github.com/GGngodong/api-dahana.git&quot;,
-    &quot;accountId&quot;: &quot;0d1dbba1-a348-4dc6-94c2-a10ed5c7d2b6&quot;
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/GGngodong/api-dahana.git",
+    "accountId": "894626cc-3add-43c5-8830-b6ca290f9dc7"
   }
-}</component>
+}]]></component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 7
 }</component>
@@ -67,24 +47,24 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;dart.analysis.tool.window.visible&quot;: &quot;false&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;feature/auth-login-register&quot;,
-    &quot;javascript.nodejs.core.library.configured.version&quot;: &quot;22.12.0&quot;,
-    &quot;javascript.nodejs.core.library.typings.version&quot;: &quot;22.12.0&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_interpreter_path&quot;: &quot;node&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;ts.external.directory.path&quot;: &quot;C:\\Users\\zidan\\WebstormProjects\\api-dahana\\node_modules\\typescript\\lib&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "dart.analysis.tool.window.visible": "false",
+    "git-widget-placeholder": "feature/auth-login-register",
+    "javascript.nodejs.core.library.configured.version": "23.4.0",
+    "javascript.nodejs.core.library.typings.version": "24.0.3",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_interpreter_path": "node",
+    "nodejs_package_manager_path": "npm",
+    "ts.external.directory.path": "C:\\Users\\zidan\\WebstormProjects\\api-dahana\\node_modules\\typescript\\lib",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\Users\zidan\WebstormProjects\api-dahana\src\routes" />
@@ -107,6 +87,7 @@
       <updated>1750085336893</updated>
       <workItem from="1750085337813" duration="2436000" />
       <workItem from="1750087837021" duration="163000" />
+      <workItem from="1750150352359" duration="1632000" />
     </task>
     <task id="LOCAL-00001" summary="First Commit">
       <option name="closed" value="true" />
@@ -152,6 +133,7 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="First Commit" />
     <MESSAGE value="First Commit Dev" />
-    <option name="LAST_COMMIT_MESSAGE" value="First Commit Dev" />
+    <MESSAGE value="feat: Implement user authentication and refactor setup&#10;&#10;- Added user registration, login, and profile management with Firebase authentication.&#10;- Configured Sequelize for local database interaction.&#10;- Cleaned up Git history: added .env, firebase-credentials.json, and IDE files to .gitignore.&#10;- Ensured all relevant project files are now properly tracked by Git." />
+    <option name="LAST_COMMIT_MESSAGE" value="feat: Implement user authentication and refactor setup&#10;&#10;- Added user registration, login, and profile management with Firebase authentication.&#10;- Configured Sequelize for local database interaction.&#10;- Cleaned up Git history: added .env, firebase-credentials.json, and IDE files to .gitignore.&#10;- Ensured all relevant project files are now properly tracked by Git." />
   </component>
 </project>

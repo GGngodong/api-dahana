@@ -1,21 +1,27 @@
-import { verifyToken } from '../utils/token.js';
+// middleware/auth.js
+const jwt = require('jsonwebtoken');
+const firebaseAuth = require('../config/firebase');
+const User = require('../models/User');
 
-export function authenticate(requiredScopes = ['*']) {
-    return (req, res, next) => {
-        const auth = req.header('Authorization')?.split(' ')[1];
-        if (!auth) return res.status(401).json({ status:'error', message:'Missing token' });
+module.exports = async (req, res, next) => {
+  const auth = req.header('Authorization') || '';
+  if (!auth.startsWith('Bearer ')) {
+    return res.status(401).json({ errors: ['Unauthorized.'] });
+  }
+  const token = auth.replace('Bearer ', '');
 
-        try {
-            const payload = verifyToken(auth);
-            // Check scopes
-            if (!payload.scope.includes('*') &&
-                !requiredScopes.some(s => payload.scope.includes(s))) {
-                return res.status(403).json({ status:'error', message:'Insufficient scope' });
-            }
-            req.user = { uid: payload.uid };
-            next();
-        } catch (e) {
-            return res.status(401).json({ status:'error', message:'Invalid or expired token' });
-        }
-    };
-}
+  try {
+    // Verify our own API JWT
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    // Optionally verify Firebase idToken:
+    await firebaseAuth.verifyIdToken(payload.firebaseIdToken);
+
+    const user = await User.findByPk(payload.userId);
+    if (!user) throw new Error();
+
+    req.user = user;
+    next();
+  } catch {
+    res.status(401).json({ errors: ['Invalid or expired token.'] });
+  }
+};

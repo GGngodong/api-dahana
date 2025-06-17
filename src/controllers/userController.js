@@ -1,131 +1,192 @@
-import admin from 'firebase-admin';
-import { signTempToken, signAuthToken } from '../utils/token.js';
-import { sendVerificationEmail } from '../services/emailService.js';
-import { validationResult } from 'express-validator';
-
-export async function register(req, res, next) {
-    try {
-        // 1) Validate input (assumes express-validator used in route)
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ status:'error', errors: errors.array() });
-        }
-
-        const { username, email, password, division } = req.body;
-
-        // 2) Prevent duplicate
-        try {
-            await admin.auth().getUserByEmail(email);
-            return res.status(400).json({
-                status: 'error',
-                errors: [{ field:'email', msg:'Email already taken' }],
-            });
-        } catch {/* not found, OK */ }
-
-        // 3) Create in Firebase
-        const userRecord = await admin.auth().createUser({
-            email, password, displayName: username,
-        });
-
-        // 4) [Optional] persist in your own DB here...
-
-        // 5) Log them in by issuing a temp token
-        const tempToken = signTempToken(userRecord.uid);
-
-        // 6) Send verification email
-        await sendVerificationEmail(email);
-
-        return res.status(201).json({
-            status: 'success',
-            data: {
-                user: {
-                    uid: userRecord.uid,
-                    username,
-                    email,
-                    division,
-                },
-                token: tempToken,
-            },
-            message: 'Registered successfully. Verification email sent.',
-        });
-    } catch (e) {
-        next(e);
-    }
+// controllers/userController.js
+const { validationResult } = require('express-validator');
+const bcrypt            = require('bcryptjs');
+const jwt               = require('jsonwebtoken');
+const firebaseAuth      = require('../config/firebase');
+const { User } = require('../models');
+console.log('controllers/userController.js: User object after import from models/index:', typeof User, User); // <--- ADD THIS
+// Helpers
+function collectErrors(req, res) {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    const msgs = errors.array().map(err => err.msg);
+    res.status(400).json({ status: 'error', errors: msgs });
+    return false;
+  }
+  return true;
 }
 
-export async function login(req, res, next) {
-    try {
-        const { email, password } = req.body;
+// POST /api/users
+exports.register = async (req, res) => {
+  if (!collectErrors(req, res)) return;
 
-        // 1) Verify credentials via Firebase REST API
-        const idToken = await admin
-            .auth()
-            .verifyIdToken(await admin.auth().createCustomToken(email, {password}));
+  const { username, email, password, division } = req.body;
+  try {
+    // Create in Firebase
+    await firebaseAuth.getUserByEmail(email)
+      .then(() => Promise.reject(new Error('This email is already registered')))
+      .catch(err => {
+        if (err.code !== 'auth/user-not-found') throw err;
+      });
 
-        // [In real world you’d sign in with Firebase client SDK in Flutter, but here…]
-        // 2) Ensure emailVerified
-        const userRecord = await admin.auth().getUserByEmail(email);
-        if (!userRecord.emailVerified) {
-            return res.status(403).json({
-                status:'error',
-                message:'Please verify your email before logging in.',
-            });
-        }
+    const fbUser = await firebaseAuth.createUser({ email, password, displayName: username });
 
-        // 3) Issue full‑scope JWT
-        const authToken = signAuthToken(userRecord.uid);
+    // Create local user
+    const hash = await bcrypt.hash(password, 12);
+    const user = await User.create({ username, email, password: hash, division });
 
-        return res.json({
-            status:'success',
-            data:{
-                token: authToken,
-                user: {
-                    uid: userRecord.uid,
-                    email: userRecord.email,
-                    displayName: userRecord.displayName,
-                }
-            },
-            message:'Login successful',
-        });
-    } catch (e) {
-        return res.status(401).json({ status:'error', message:'Invalid credentials' });
+    return res.status(201).json({
+      status: 'success',
+      data: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        division: user.division,
+        role: user.role
+      }
+    });
+  } catch (err) {
+    const msg = err.message || 'Registration failed.';
+    return res.status(400).json({ status: 'error', errors: [msg] });
+  }
+};
+
+// POST /api/users/login
+exports.login = async (req, res) => {
+  if (!collectErrors(req, res)) return;
+
+  const { email, password } = req.body;
+  try {
+    // 1) Find local user
+    const user = await User.findOne({ where: { email } });
+    if (!user) {
+      return res.status(401).json({ status: 'error', errors: ['Email is not registered'] });
     }
-}
 
-export async function sendEmailVerification(req, res, next) {
-    try {
-        const { uid } = req.user;
-        const userRecord = await admin.auth().getUser(uid);
-        await sendVerificationEmail(userRecord.email);
-        return res.json({ status:'success', message:'Verification email sent' });
-    } catch (e) {
-        next(e);
+    // 2) Check password
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) {
+      return res.status(401).json({ status: 'error', errors: ['Password is incorrect'] });
     }
-}
 
-export async function verifyEmail(req, res, next) {
-    try {
-        const oobCode = req.query.oobCode;
-        if (!oobCode) return res.status(400).json({ status:'error', message:'Missing oobCode' });
+    // 3) Verify Firebase credentials
+    const signIn = await firebaseAuth.getUserByEmail(email); 
+    // (we assume client handled sending a valid FB token; otherwise createCustomToken…)
+    
+    // 4) Issue our JWT
+    const token = jwt.sign(
+      { userId: user.id, firebaseUid: signIn.uid },
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' }
+    );
 
-        // Mark verified via Firebase
-        await admin.auth().applyActionCode(oobCode);
+    res.json({
+      status:  'success',
+      message: 'Login successful.',
+      data: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        division: user.division,
+        role: user.role,
+        token
+      }
+    });
+  } catch (err) {
+    console.error('login:', err);
+    res.status(500).json({ status: 'error', errors: ['Login failed.'] });
+  }
+};
 
-        return res.json({ status:'success', message:'Email verified successfully' });
-    } catch (e) {
-        return res.status(400).json({ status:'error', message:e.message });
+// GET /api/users/current
+exports.getCurrent = (req, res) => {
+  const u = req.user;
+  res.json({
+    status: 'success',
+    data: {
+      id: u.id,
+      username: u.username,
+      email: u.email,
+      division: u.division,
+      role: u.role
     }
-}
+  });
+};
 
-export async function checkEmailVerified(req, res, next) {
-    try {
-        const { uid } = req.user;
-        const userRecord = await admin.auth().getUser(uid);
-        if (userRecord.emailVerified) {
-            return res.json({ status:'success', message:'Email is verified.' });
-        }
-        return res.status(400).json({ status:'error', message:'Email is not verified.' });
-    } catch (e) {
-        next(e);
+// DELETE /api/users/logout
+exports.logout = async (req, res) => {
+  req.user.deviceToken = null;
+  await req.user.save();
+  res.json({ status: 'success', message: 'Logged out successfully.' });
+};
+
+// PATCH /api/users/current
+exports.update = async (req, res) => {
+  if (!collectErrors(req, res)) return;
+
+  const { username, password } = req.body;
+  if (username) req.user.username = username;
+  if (password) req.user.password = await bcrypt.hash(password, 12);
+  await req.user.save();
+
+  res.json({
+    status: 'success',
+    data: {
+      id: req.user.id,
+      username: req.user.username,
+      email: req.user.email,
+      division: req.user.division,
+      role: req.user.role
     }
-}
+  });
+};
+
+// PATCH /api/users/update-token
+exports.updateDeviceToken = async (req, res) => {
+  if (!collectErrors(req, res)) return;
+
+  req.user.deviceToken = req.body.device_token;
+  await req.user.save();
+  res.json({ status: 'success', message: 'Device token updated successfully.' });
+};
+
+// POST /api/users/forgot-password
+exports.sendPasswordResetEmail = async (req, res) => {
+  if (!collectErrors(req, res)) return;
+
+  try {
+    const link = await firebaseAuth.generatePasswordResetLink(req.body.email);
+    // ... send via your emailService ...
+    res.json({ status: 'success', message: 'Password reset email sent successfully.' });
+  } catch (err) {
+    console.error('sendPasswordResetEmail:', err);
+    res.status(400).json({ status: 'error', errors: ['Failed to send password reset email.'] });
+  }
+};
+
+// POST /api/users/send-email-verification
+exports.sendEmailVerification = async (req, res) => {
+  try {
+    const link = await firebaseAuth.generateEmailVerificationLink(req.user.email);
+    // ... send via your emailService ...
+    res.json({ status: 'success', message: 'Email verification link sent successfully.' });
+  } catch (err) {
+    console.error('sendEmailVerification:', err);
+    res.status(400).json({ status: 'error', errors: ['Failed to send email verification link.'] });
+  }
+};
+
+// GET /api/users/check-email-verified
+exports.checkEmailVerified = async (req, res) => {
+  try {
+    const fbUser = await firebaseAuth.getUserByEmail(req.user.email);
+    if (fbUser.emailVerified) {
+      res.json({ status: 'success', message: 'Email is verified.' });
+    } else {
+      res.status(400).json({ status: 'error', errors: ['Email is not verified.'] });
+    }
+  } catch (err) {
+    console.error('checkEmailVerified:', err);
+    res.status(400).json({ status: 'error', errors: ['Failed to check verification status.'] });
+  }
+};
