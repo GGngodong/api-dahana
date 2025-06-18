@@ -15,7 +15,7 @@ logs/
 
 # Editor/IDE specific
 .vscode/
-.idea/ # For JetBrains IDEs like PyCharm
+.idea/
 *.sublime-project
 *.sublime-workspace
 .DS_Store
@@ -36,3 +36,6 @@ coverage/
 .localized
 .Trashes
 Thumbs.db
+
+#Firebase
+firebase-credentials.json
