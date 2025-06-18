@@ -1,0 +1,42 @@
+# Node.js
+node_modules/
+npm-debug.log
+.DS_Store # macOS specific
+.env
+.env.*
+build/
+dist/
+tmp/
+logs/
+*.log
+*.sql
+*.sqlite
+*.sqlite-journal
+
+# Editor/IDE specific
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.DS_Store
+
+# Testing
+coverage/
+.nyc_output/
+
+# ESLint and other linting/tooling caches
+.eslintcache
+.prettiercache
+
+# Compiled JavaScript (if you use TypeScript or Babel)
+/dist/
+/lib/
+
+# OS generated files
+.localized
+.Trashes
+Thumbs.db
+
+# FIREBASE
+firebase-credentials.json
+
