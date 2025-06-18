@@ -1,16 +1,23 @@
+
 // controllers/userController.js
-const { validationResult } = require('express-validator');
-const bcrypt            = require('bcryptjs');
-const jwt               = require('jsonwebtoken');
-const firebaseAuth      = require('../config/firebase');
-const { User } = require('../models');
-console.log('controllers/userController.js: User object after import from models/index:', typeof User, User); // <--- ADD THIS
+const { validationResult } = require("express-validator");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const firebaseAuth = require("../config/firebase");
+const { User } = require("../models");
+const { sendMail } = require('../services/emailService');
+
+console.log(
+  "controllers/userController.js: User object after import from models/index:",
+  typeof User,
+  User
+);
 // Helpers
 function collectErrors(req, res) {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    const msgs = errors.array().map(err => err.msg);
-    res.status(400).json({ status: 'error', errors: msgs });
+    const msgs = errors.array().map((err) => err.msg);
+    res.status(400).json({ status: "error", errors: msgs });
     return false;
   }
   return true;
@@ -23,31 +30,48 @@ exports.register = async (req, res) => {
   const { username, email, password, division } = req.body;
   try {
     // Create in Firebase
-    await firebaseAuth.getUserByEmail(email)
-      .then(() => Promise.reject(new Error('This email is already registered')))
-      .catch(err => {
-        if (err.code !== 'auth/user-not-found') throw err;
+    await firebaseAuth
+      .getUserByEmail(email)
+      .then(() => Promise.reject(new Error("This email is already registered")))
+      .catch((err) => {
+        if (err.code !== "auth/user-not-found") throw err;
       });
 
-    const fbUser = await firebaseAuth.createUser({ email, password, displayName: username });
+    const fbUser = await firebaseAuth.createUser({
+      email,
+      password,
+      displayName: username,
+    });
 
     // Create local user
     const hash = await bcrypt.hash(password, 12);
-    const user = await User.create({ username, email, password: hash, division });
+    const user = await User.create({
+      username,
+      email,
+      password: hash,
+      division,
+    });
+
+    const token = jwt.sign(
+      { userId: user.id, firebaseUid: fbUser.uid },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
 
     return res.status(201).json({
-      status: 'success',
+      status: "success",
       data: {
         id: user.id,
         username: user.username,
         email: user.email,
         division: user.division,
-        role: user.role
-      }
+        role: user.role,
+        token,
+      },
     });
   } catch (err) {
-    const msg = err.message || 'Registration failed.';
-    return res.status(400).json({ status: 'error', errors: [msg] });
+    const msg = err.message || "Registration failed.";
+    return res.status(400).json({ status: "error", errors: [msg] });
   }
 };
 
@@ -56,45 +80,57 @@ exports.login = async (req, res) => {
   if (!collectErrors(req, res)) return;
 
   const { email, password } = req.body;
+
   try {
     // 1) Find local user
     const user = await User.findOne({ where: { email } });
     if (!user) {
-      return res.status(401).json({ status: 'error', errors: ['Email is not registered'] });
+      return res
+        .status(401)
+        .json({ status: "error", errors: ["Email is not registered"] });
     }
 
     // 2) Check password
     const match = await bcrypt.compare(password, user.password);
     if (!match) {
-      return res.status(401).json({ status: 'error', errors: ['Password is incorrect'] });
+      return res
+        .status(401)
+        .json({ status: "error", errors: ["Password is incorrect"] });
     }
 
-    // 3) Verify Firebase credentials
-    const signIn = await firebaseAuth.getUserByEmail(email); 
-    // (we assume client handled sending a valid FB token; otherwise createCustomToken…)
-    
+    // 3) Check emailVerified in Firebase
+    const fbUser = await firebaseAuth.getUserByEmail(email);
+    if (!fbUser.emailVerified) {
+      return res.status(403).json({
+        status: "error",
+        errors: [
+          "Email not verified. Please check your inbox and verify before logging in.",
+        ],
+      });
+    }
+
     // 4) Issue our JWT
     const token = jwt.sign(
-      { userId: user.id, firebaseUid: signIn.uid },
+      { userId: user.id, firebaseUid: fbUser.uid },
       process.env.JWT_SECRET,
-      { expiresIn: '1h' }
+      { expiresIn: "1h" }
     );
 
-    res.json({
-      status:  'success',
-      message: 'Login successful.',
+    return res.json({
+      status: "success",
+      message: "Login successful.",
       data: {
         id: user.id,
         username: user.username,
         email: user.email,
         division: user.division,
         role: user.role,
-        token
-      }
+        token,
+      },
     });
   } catch (err) {
-    console.error('login:', err);
-    res.status(500).json({ status: 'error', errors: ['Login failed.'] });
+    console.error("login:", err);
+    return res.status(500).json({ status: "error", errors: ["Login failed."] });
   }
 };
 
@@ -102,14 +138,14 @@ exports.login = async (req, res) => {
 exports.getCurrent = (req, res) => {
   const u = req.user;
   res.json({
-    status: 'success',
+    status: "success",
     data: {
       id: u.id,
       username: u.username,
       email: u.email,
       division: u.division,
-      role: u.role
-    }
+      role: u.role,
+    },
   });
 };
 
@@ -117,7 +153,7 @@ exports.getCurrent = (req, res) => {
 exports.logout = async (req, res) => {
   req.user.deviceToken = null;
   await req.user.save();
-  res.json({ status: 'success', message: 'Logged out successfully.' });
+  res.json({ status: "success", message: "Logged out successfully." });
 };
 
 // PATCH /api/users/current
@@ -130,14 +166,14 @@ exports.update = async (req, res) => {
   await req.user.save();
 
   res.json({
-    status: 'success',
+    status: "success",
     data: {
       id: req.user.id,
       username: req.user.username,
       email: req.user.email,
       division: req.user.division,
-      role: req.user.role
-    }
+      role: req.user.role,
+    },
   });
 };
 
@@ -147,46 +183,92 @@ exports.updateDeviceToken = async (req, res) => {
 
   req.user.deviceToken = req.body.device_token;
   await req.user.save();
-  res.json({ status: 'success', message: 'Device token updated successfully.' });
+  res.json({
+    status: "success",
+    message: "Device token updated successfully.",
+  });
 };
 
-// POST /api/users/forgot-password
 exports.sendPasswordResetEmail = async (req, res) => {
   if (!collectErrors(req, res)) return;
 
   try {
+    // 1) generate Firebase reset link
     const link = await firebaseAuth.generatePasswordResetLink(req.body.email);
-    // ... send via your emailService ...
-    res.json({ status: 'success', message: 'Password reset email sent successfully.' });
+
+    // 2) send via Nodemailer
+    await sendMail({
+      to: req.body.email,
+      subject: 'Reset Your Password',
+      html: `
+        <p>Hello,</p>
+        <p>You requested a password reset. Click below to set a new password:</p>
+        <a href="${link}">Reset my password</a>
+        <p>If you didn’t ask for this, you can ignore this email securely.</p>
+      `
+    });
+
+    return res.json({
+      status: 'success',
+      message: 'Password reset email sent successfully.'
+    });
   } catch (err) {
     console.error('sendPasswordResetEmail:', err);
-    res.status(400).json({ status: 'error', errors: ['Failed to send password reset email.'] });
+    return res.status(400).json({
+      status: 'error',
+      errors: ['Failed to send password reset email.']
+    });
   }
 };
 
 // POST /api/users/send-email-verification
 exports.sendEmailVerification = async (req, res) => {
   try {
+    // 1) generate Firebase link
     const link = await firebaseAuth.generateEmailVerificationLink(req.user.email);
-    // ... send via your emailService ...
-    res.json({ status: 'success', message: 'Email verification link sent successfully.' });
+
+    // 2) send via Nodemailer
+    await sendMail({
+      to: req.user.email,
+      subject: 'Verify Your Email Address',
+      html: `
+        <p>Hi ${req.user.username},</p>
+        <p>Please verify your email by clicking the link below:</p>
+        <a href="${link}">Verify my email</a>
+        <p>If you didn’t request this, please ignore.</p>
+      `
+    });
+
+    return res.json({
+      status: 'success',
+      message: 'Email verification link sent successfully.'
+    });
   } catch (err) {
     console.error('sendEmailVerification:', err);
-    res.status(400).json({ status: 'error', errors: ['Failed to send email verification link.'] });
+    return res.status(400).json({
+      status: 'error',
+      errors: ['Failed to send email verification link.']
+    });
   }
 };
-
 // GET /api/users/check-email-verified
 exports.checkEmailVerified = async (req, res) => {
   try {
     const fbUser = await firebaseAuth.getUserByEmail(req.user.email);
     if (fbUser.emailVerified) {
-      res.json({ status: 'success', message: 'Email is verified.' });
+      res.json({ status: "success", message: "Email is verified." });
     } else {
-      res.status(400).json({ status: 'error', errors: ['Email is not verified.'] });
+      res
+        .status(400)
+        .json({ status: "error", errors: ["Email is not verified."] });
     }
   } catch (err) {
-    console.error('checkEmailVerified:', err);
-    res.status(400).json({ status: 'error', errors: ['Failed to check verification status.'] });
+    console.error("checkEmailVerified:", err);
+    res
+      .status(400)
+      .json({
+        status: "error",
+        errors: ["Failed to check verification status."],
+      });
   }
 };
