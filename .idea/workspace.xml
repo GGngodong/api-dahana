@@ -4,11 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a304ec47-3329-4b83-8387-d0f36a8c528c" name="Changes" comment="updated some git ignore">
-      <change afterPath="$PROJECT_DIR$/firebase-credentials.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-    </list>
+    <list default="true" id="a304ec47-3329-4b83-8387-d0f36a8c528c" name="Changes" comment="im furstated with this" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -95,7 +91,7 @@
       <workItem from="1750085337813" duration="2436000" />
       <workItem from="1750087837021" duration="163000" />
       <workItem from="1750150352359" duration="2121000" />
-      <workItem from="1750152756745" duration="350000" />
+      <workItem from="1750152756745" duration="540000" />
     </task>
     <task id="LOCAL-00001" summary="First Commit">
       <option name="closed" value="true" />
@@ -137,7 +133,23 @@
       <option name="project" value="LOCAL" />
       <updated>1750152804293</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="git ignore push">
+      <option name="closed" value="true" />
+      <created>1750153152816</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1750153152816</updated>
+    </task>
+    <task id="LOCAL-00007" summary="im furstated with this">
+      <option name="closed" value="true" />
+      <created>1750153232353</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1750153232353</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -160,6 +172,8 @@
     <MESSAGE value="feat: Implement user authentication and refactor setup&#10;&#10;- Added user registration, login, and profile management with Firebase authentication.&#10;- Configured Sequelize for local database interaction.&#10;- Cleaned up Git history: added .env, firebase-credentials.json, and IDE files to .gitignore.&#10;- Ensured all relevant project files are now properly tracked by Git." />
     <MESSAGE value="commit" />
     <MESSAGE value="updated some git ignore" />
-    <option name="LAST_COMMIT_MESSAGE" value="updated some git ignore" />
+    <MESSAGE value="git ignore push" />
+    <MESSAGE value="im furstated with this" />
+    <option name="LAST_COMMIT_MESSAGE" value="im furstated with this" />
   </component>
 </project>

@@ -1,27 +1,29 @@
 // middleware/auth.js
-const jwt = require('jsonwebtoken');
-const firebaseAuth = require('../config/firebase');
+const jwt  = require('jsonwebtoken');
 const User = require('../models/User');
 
 module.exports = async (req, res, next) => {
-  const auth = req.header('Authorization') || '';
-  if (!auth.startsWith('Bearer ')) {
+  const authHeader = req.header('Authorization') || '';
+  if (!authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ errors: ['Unauthorized.'] });
   }
-  const token = auth.replace('Bearer ', '');
+
+  const token = authHeader.slice(7); // remove "Bearer "
 
   try {
-    // Verify our own API JWT
+    // 1) Verify our own JWT
     const payload = jwt.verify(token, process.env.JWT_SECRET);
-    // Optionally verify Firebase idToken:
-    await firebaseAuth.verifyIdToken(payload.firebaseIdToken);
 
+    // 2) Load the user
     const user = await User.findByPk(payload.userId);
-    if (!user) throw new Error();
+    if (!user) throw new Error('User not found');
 
+    // 3) Attach and continue
     req.user = user;
     next();
-  } catch {
-    res.status(401).json({ errors: ['Invalid or expired token.'] });
+
+  } catch (err) {
+    console.error('Auth error:', err);
+    return res.status(401).json({ errors: ['Invalid or expired token.'] });
   }
 };
