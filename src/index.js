@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import admin from 'firebase-admin';
 
 import userRoutes from './routes/userRoutes.js';
+import permitRoutes from './routes/permitLetterRoutes.js';
 
 dotenv.config();
 
@@ -19,7 +20,8 @@ admin.initializeApp({
 const app = express();
 app.use(helmet(), cors(), express.json());
 
-app.use('/api/users', userRoutes);
+app.use('/api', userRoutes);
+app.use('/api', permitRoutes);
 
 app.use((err, req, res, next) => {
     console.error(err);

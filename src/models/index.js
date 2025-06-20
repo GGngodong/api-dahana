@@ -1,11 +1,14 @@
 const sequelize = require('../config/db');
 const User = require('./User');
-console.log('models/index.js: User object after import from User.js:', typeof User, User); // <--- ADD THIS
+const PermitLetter = require('./PermitLetter')
+const Notification  = require('./Notification');
 
 const models = {
     User: User,
+    PermitLetter,
+    Notification,
 };
-console.log('models/index.js: models object before export:', models); // <--- ADD THIS
+
 
 module.exports = {
     sequelize,
